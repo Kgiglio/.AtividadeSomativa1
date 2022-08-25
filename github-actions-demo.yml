@@ -1,0 +1,28 @@
+from wifi_lib import conecta
+import dht
+import machine
+import time
+import urequests
+
+print("Conectando...")
+station = conecta("VIVOFIBRA-7F58","1AE59D2228")
+if not station.isconnected():
+    print("Não conectado!")
+else:
+    print("Conectado!")
+
+r = machine.Pin(2, machine.Pin.OUT)
+d = dht.DHT11(machine.Pin(4))
+
+while True:
+    d.measure()
+    print("Temp={}  Umid={}".format(d.temperature(), d.humidity()))
+    siteAcessado = urequests.get("https://api.thingspeak.com/update?api_key=0CKV19NA8MEVMWOE&field1={}&field2={}".format(d.temperature(),d.humidity()))
+    print(siteAcessado.text)
+    
+    if d.temperature() >31 or d.humidity() >70:
+       r.value(1)
+    
+    else:
+       r.value(0)
+       time.sleep(15)
